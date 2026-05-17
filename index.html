@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CraftCore — Vanilla Survival Server</title>
+    <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)">
+    <link rel="preconnect" href="[fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+    <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap)" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --accent-green: #10b981;
+            --accent-emerald: #34d399;
+            --accent-purple: #8b5cf6;
+            --accent-violet: #a78bfa;
+            --gradient-main: linear-gradient(135deg, #10b981 0%, #8b5cf6 100%);
+            --gradient-glow: linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(139, 92, 246, 0.4) 100%);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 60px rgba(16, 185, 129, 0.15);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-green);
+            border-radius: 4px;
+        }
+
+        /* Background Effects */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+                        radial-gradient(circle at 70% 60%, rgba(139, 92, 246, 0.08) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(5deg); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg); }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 0;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            text-decoration: none;
+            color: var(--text-primary);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-main);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-emerald);
+        }
+
+        .nav-cta {
+            background: var(--gradient-main);
+            color: var(--text-primary);
+            padding: 10px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .mobile-menu-btn span {
+            width: 24px;
+            height: 2px;
+            background: var(--text-primary);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 120px 0 80px;
+            position: relative;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-text {
+            max-width: 600px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-tagline {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.7;
+        }
+
+        .server-info {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(20px);
+        }
+
+        .server-ip {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .server-ip-text {
+            flex: 1;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            color: var(--accent-emerald);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .copy-btn {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-emerald);
+            transform: translateY(-2px);
+        }
+
+        .copy-btn.copied {
+            background: var(--accent-purple);
+        }
+
+        .server-stats {
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-icon {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .stat-icon.online {
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .stat-icon.version {
+            background: var(--accent-purple);
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--gradient-main);
+            color: var(--text-primary);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-glass);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-green);
+        }
+
+        .btn-discord {
+            background: #5865F2;
+            color: white;
+        }
+
+        .btn-discord:hover {
+            background: #4752C4;
+            transform: translateY(-3px);
+        }
+
+        .btn-telegram {
+            background: #2AABEE;
+            color: white;
+        }
+
+        .btn-telegram:hover {
+            background: #229ED9;
+            transform: translateY(-3px);
+        }
+
+        .hero-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-image-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+        }
+
+        .hero-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            background: var(--gradient-glow);
+            filter: blur(60px);
+            border-radius: 50%;
+            animation: glow-pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .hero-cube {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            transform-style: preserve-3d;
+            animation: rotate-cube 20s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes rotate-cube {
+            0% { transform: rotateX(-20deg) rotateY(0deg); }
+            100% { transform: rotateX(-20deg) rotateY(360deg); }
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .cube-face.front { transform: translateZ(100px); }
+        .cube-face.back { transform: translateZ(-100px) rotateY(180deg); }
+        .cube-face.left { transform: translateX(-100px) rotateY(-90deg); }
+        .cube-face.right { transform: translateX(100px) rotateY(90deg); }
+        .cube-face.top { transform: translateY(-100px) rotateX(90deg); }
+        .cube-face.bottom { transform: translateY(100px) rotateX(-90deg); }
+
+        /* Section Styles */
+        section {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto 60px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 2.75rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+
+        /* About Section */
+        .about {
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .about-text h3 {
+            font-size: 1.75rem;
+            margin-bottom: 20px;
+        }
+
+        .about-text p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.8;
+        }
+
+        .about-highlights {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .highlight-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .highlight-item:hover {
+            border-color: var(--accent-green);
+            transform: translateX(10px);
+        }
+
+        .highlight-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-main);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .highlight-text h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        .highlight-text p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .about-visual {
+            position: relative;
+        }
+
+        .about-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-main);
+        }
+
+        .about-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .about-stat {
+            text-align: center;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .about-stat:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
+
+        .about-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .about-stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        /* Features Section */
+        .features {
+            background: var(--bg-secondary);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-main);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: transparent;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-card:hover::before {
+            opacity: 0.1;
+        }
+
+        .feature-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--gradient-main);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+        }
+
+        /* Social Section */
+        .social {
+            background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
+        }
+
+        .social-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .social-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .social-card:hover::before {
+            opacity: 1;
+        }
+
+        .social-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .social-card.discord {
+            border-color: rgba(88, 101, 242, 0.3);
+        }
+
+        .social-card.discord:hover {
+            border-color: #5865F2;
+            box-shadow: 0 20px 60px rgba(88, 101, 242, 0.2);
+        }
+
+        .social-card.telegram {
+            border-color: rgba(42, 171, 238, 0.3);
+        }
+
+        .social-card.telegram:hover {
+            border-color: #2AABEE;
+            box-shadow: 0 20px 60px rgba(42, 171, 238, 0.2);
+        }
+
+        .social-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 24px;
+        }
+
+        .social-card.discord .social-icon {
+            background: linear-gradient(135deg, #5865F2 0%, #7289DA 100%);
+        }
+
+        .social-card.telegram .social-icon {
+            background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%);
+        }
+
+        .social-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+
+        .social-card p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Content Creator Section */
+        .creator {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .creator-container {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 32px;
+            padding: 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .creator-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-main);
+            opacity: 0.05;
+        }
+
+        .creator-glow {
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .creator-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .creator-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--gradient-main);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 32px;
+            animation: float-icon 3s ease-in-out infinite;
+        }
+
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .creator h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .creator p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto 40px;
+        }
+
+        .creator .btn {
+            font-size: 1.1rem;
+            padding: 18px 40px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand .logo {
+            margin-bottom: 20px;
+        }
+
+        .footer-brand p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            max-width: 300px;
+        }
+
+        .footer-links h4 {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-emerald);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+        }
+
+        .footer-social a {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .footer-social a:hover {
+            background: var(--gradient-main);
+            border-color: transparent;
+            color: var(--text-primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--border-color);
+            padding-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-copyright {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-legal a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-legal a:hover {
+            color: var(--text-secondary);
+        }
+
+        .social-card.youtube {
+            border-color: rgba(255, 0, 0, 0.3);
+        }
+
+        .social-card.youtube:hover {
+            border-color: #FF0000;
+            box-shadow: 0 20px 60px rgba(255, 0, 0, 0.2);
+        }
+
+        .social-card.youtube .social-icon {
+            background: linear-gradient(135deg, #FF0000 0%, #CC0000 100%);
+        }
+
+        .social-card.tiktok {
+            border-color: rgba(0, 242, 234, 0.3);
+        }
+
+        .social-card.tiktok:hover {
+            border-color: #00f2ea;
+            box-shadow: 0 20px 60px rgba(0, 242, 234, 0.2);
+        }
+
+        .social-card.tiktok .social-icon {
+            background: linear-gradient(135deg, #010101 0%, #69C9D0 100%);
+        }
+
+        /* Dev Status Banner */
+        .dev-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+            color: #1a1a1a;
+            text-align: center;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .dev-banner .banner-icon {
+            font-size: 1rem;
+        }
+
+        nav {
+            top: 36px !important;
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .lang-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .lang-btn:hover, .lang-btn.active {
+            background: var(--accent-green);
+            border-color: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        .btn-tiktok {
+            background: linear-gradient(135deg, #010101 0%, #69C9D0 100%);
+            color: white;
+        }
+
+        .btn-tiktok:hover {
+            opacity: 0.85;
+            transform: translateY(-3px);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 40px rgba(16, 185, 129, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 10, 15, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 99;
+            padding: 100px 24px;
+            transform: translateX(100%);
+            transition: transform 0.4s ease;
+        }
+
+        .mobile-menu.active {
+            transform: translateX(0);
+        }
+
+        .mobile-menu-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .mobile-menu-links a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 1.5rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .mobile-menu-links a:hover {
+            color: var(--accent-emerald);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero h1 {
+                font-size: 3rem;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .hero-visual {
+                order: -1;
+            }
+
+            .hero-cube {
+                width: 150px;
+                height: 150px;
+            }
+
+            .cube-face {
+                width: 150px;
+                height: 150px;
+            }
+
+            .cube-face.front { transform: translateZ(75px); }
+            .cube-face.back { transform: translateZ(-75px) rotateY(180deg); }
+            .cube-face.left { transform: translateX(-75px) rotateY(-90deg); }
+            .cube-face.right { transform: translateX(75px) rotateY(90deg); }
+            .cube-face.top { transform: translateY(-75px) rotateX(90deg); }
+            .cube-face.bottom { transform: translateY(75px) rotateX(-90deg); }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .about-content {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links, .nav-cta {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero {
+                padding: 100px 0 60px;
+            }
+
+            .hero h1 {
+                font-size: 2.25rem;
+            }
+
+            .hero-tagline {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .social-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .creator-container {
+                padding: 40px 24px;
+            }
+
+            .creator h2 {
+                font-size: 1.75rem;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .server-ip {
+                flex-direction: column;
+            }
+
+            .server-ip-text {
+                width: 100%;
+                text-align: center;
+            }
+
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .server-stats {
+                justify-content: center;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dev Status Banner -->
+    <div class="dev-banner">
+        <span class="banner-icon">🚧</span>
+        <span data-i18n="devBanner">Сервер всё ещё находится в разработке</span>
+        <span class="banner-icon">🚧</span>
+    </div>
+
+    <!-- Background Effects -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="container nav-container">
+            <a href="#" class="logo">
+                <div class="logo-icon">⛏️</div>
+                CraftCore
+            </a>
+            <ul class="nav-links">
+                <li><a href="#about" data-i18n="navAbout">О сервере</a></li>
+                <li><a href="#features" data-i18n="navFeatures">Особенности</a></li>
+                <li><a href="#social" data-i18n="navSocial">Соцсети</a></li>
+                <li><a href="#creator" data-i18n="navContent">Контент</a></li>
+            </ul>
+            <a href="https://discord.gg/th4WgUWuNS" class="nav-cta" data-i18n="navCta">Начать играть</a>
+            <div class="lang-switcher">
+                <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+                <button class="lang-btn" onclick="setLang('uk')">UA</button>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Меню">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-menu-links">
+            <li><a href="#about" onclick="closeMobileMenu()" data-i18n="navAbout">О сервере</a></li>
+            <li><a href="#features" onclick="closeMobileMenu()" data-i18n="navFeatures">Особенности</a></li>
+            <li><a href="#social" onclick="closeMobileMenu()" data-i18n="navSocial">Соцсети</a></li>
+            <li><a href="#creator" onclick="closeMobileMenu()" data-i18n="navContent">Контент</a></li>
+            <li><a href="https://discord.gg/th4WgUWuNS" onclick="closeMobileMenu()" data-i18n="navCta">Начать играть</a></li>
+        </ul>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span class="dot"></span><span data-i18n="heroBadge">Сервер онлайн</span>
+                    </div>
+                    <h1>Чистый <span>Vanilla</span> Survival</h1>
+                    <p class="hero-tagline" data-i18n="heroTagline">Никаких модов. Никаких донат-привилегий. Только ты, блоки и бесконечные возможности. Присоединяйся к комьюнити, которое ценит настоящий Minecraft.</p>
+                    
+                    <div class="server-info">
+                        <div class="server-ip">
+                            <div class="server-ip-text" id="serverIp">play.craftcore.ru</div>
+                            <button class="copy-btn" id="copyBtn" onclick="copyIP()">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                <span>Скопировать IP</span>
+                            </button>
+                        </div>
+                        <div class="server-stats">
+                            <div class="stat">
+                                <span class="stat-icon online"></span>
+                                <span data-i18n="heroOnline">47/100 онлайн</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-icon version"></span>
+                                <span>Java 1.21.4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hero-buttons">
+                        <a href="https://discord.gg/th4WgUWuNS" class="btn btn-discord">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                            </svg>
+                            Discord
+                        </a>
+                        <a href="https://t.me/silencek4" class="btn btn-telegram">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                            </svg>
+                            Telegram
+                        </a>
+                        <a href="#about" class="btn btn-secondary" data-i18n="heroLearnMore">Узнать больше</a>
+                    </div>
+                </div>
+                
+                <div class="hero-visual">
+                    <div class="hero-image-container">
+                        <div class="hero-glow"></div>
+                        <div class="hero-cube">
+                            <div class="cube-face front">🟩</div>
+                            <div class="cube-face back">💎</div>
+                            <div class="cube-face left">⛏️</div>
+                            <div class="cube-face right">🗡️</div>
+                            <div class="cube-face top">🌟</div>
+                            <div class="cube-face bottom">🔥</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about" id="about">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="sectionAboutTag">О проекте</span>
+                <h2 class="section-title" data-i18n="sectionAboutTitle">Minecraft таким, каким он должен быть</h2>
+                <p class="section-desc" data-i18n="sectionAboutDesc">Мы создали пространство для тех, кто устал от pay-to-win серверов и хочет просто играть в Minecraft с друзьями.</p>
+            </div>
+            
+            <div class="about-content">
+                <div class="about-text">
+                    <h3 data-i18n="aboutH3">Почему именно CraftCore?</h3>
+                    <p data-i18n="aboutP1">CraftCore — это vanilla survival сервер, где главное — это геймплей и комьюнити. Никаких приватов за донат, никаких китов и читеров. Только честная игра.</p>
+                    <p data-i18n="aboutP2">Мы верим, что Minecraft прекрасен сам по себе. Поэтому мы не добавляем сотни плагинов и модов — только необходимый минимум для защиты от гриферов и читеров.</p>
+                    
+                    <div class="about-highlights">
+                        <div class="highlight-item">
+                            <div class="highlight-icon">🏗️</div>
+                            <div class="highlight-text">
+                                <h4 data-i18n="highlight1Title">Масштабные проекты</h4>
+                                <p data-i18n="highlight1Desc">Стройте города, фермы и механизмы вместе с другими игроками</p>
+                            </div>
+                        </div>
+                        <div class="highlight-item">
+                            <div class="highlight-icon">🎉</div>
+                            <div class="highlight-text">
+                                <h4 data-i18n="highlight2Title">Еженедельные ивенты</h4>
+                                <p data-i18n="highlight2Desc">PvP турниры, строительные конкурсы, квесты с призами</p>
+                            </div>
+                        </div>
+                        <div class="highlight-item">
+                            <div class="highlight-icon">🤝</div>
+                            <div class="highlight-text">
+                                <h4 data-i18n="highlight3Title">Дружелюбное комьюнити</h4>
+                                <p data-i18n="highlight3Desc">Активный Discord с голосовыми каналами и помощью новичкам</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="about-visual">
+                    <div class="about-card">
+                        <div class="about-stats">
+                            <div class="about-stat">
+                                <div class="about-stat-value">2500+</div>
+                                <div class="about-stat-label" data-i18n="statPlayers">Игроков</div>
+                            </div>
+                            <div class="about-stat">
+                                <div class="about-stat-value">99.9%</div>
+                                <div class="about-stat-label" data-i18n="statUptime">Аптайм</div>
+                            </div>
+                            <div class="about-stat">
+                                <div class="about-stat-value">&lt;50ms</div>
+                                <div class="about-stat-label" data-i18n="statPing">Пинг (Київ)</div>
+                            </div>
+                            <div class="about-stat">
+                                <div class="about-stat-value">24/7</div>
+                                <div class="about-stat-label" data-i18n="statSupport">Поддержка</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="sectionFeaturesTag">Особенности</span>
+                <h2 class="section-title" data-i18n="sectionFeaturesTitle">Всё, что нужно для идеальной игры</h2>
+                <p class="section-desc" data-i18n="sectionFeaturesDesc">Мы сосредоточились на главном — стабильности, безопасности и комфорте игроков.</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌿</div>
+                    <h3 data-i18n="feat1Title">Чистый Vanilla</h3>
+                    <p data-i18n="feat1Desc">Никаких модов, изменяющих геймплей. Только оригинальный Minecraft с минимумом административных плагинов.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 data-i18n="feat2Title">Активное комьюнити</h3>
+                    <p data-i18n="feat2Desc">Дружелюбные игроки, голосовые чаты в Discord, совместные проекты и помощь новичкам.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎮</div>
+                    <h3 data-i18n="feat3Title">Ивенты и конкурсы</h3>
+                    <p data-i18n="feat3Desc">Регулярные мероприятия: PvP арены, строительные соревнования, квесты с уникальными наградами.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 data-i18n="feat4Title">Мощный хостинг</h3>
+                    <p data-i18n="feat4Desc">Выделенный сервер в Москве. Стабильные 20 TPS даже при высоком онлайне. Минимальный пинг для СНГ.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3 data-i18n="feat5Title">Защита от гриферов</h3>
+                    <p data-i18n="feat5Desc">Система логирования CoreProtect. Быстрый откат грифа. Античит и защита от ботов.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3 data-i18n="feat6Title">Регулярные бэкапы</h3>
+                    <p data-i18n="feat6Desc">Автоматические резервные копии каждые 6 часов. Ваши постройки в безопасности.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Section -->
+    <section class="social" id="social">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="sectionSocialTag">Соцсети</span>
+                <h2 class="section-title" data-i18n="sectionSocialTitle">Присоединяйся к нам</h2>
+                <p class="section-desc" data-i18n="sectionSocialDesc">Будь в курсе всех новостей, общайся с игроками и участвуй в жизни сервера.</p>
+            </div>
+            
+            <div class="social-cards">
+                <div class="social-card discord">
+                    <div class="social-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                        </svg>
+                    </div>
+                    <h3 data-i18n="discordCardTitle">Discord сервер</h3>
+                    <p data-i18n="discordCardDesc">Голосовые каналы, чаты, анонсы ивентов и поддержка</p>
+                    <a href="https://discord.gg/th4WgUWuNS" class="btn btn-discord">
+                        <span data-i18n="discordCardBtn">Присоединиться</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+                
+                <div class="social-card telegram">
+                    <div class="social-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                            <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                        </svg>
+                    </div>
+                    <h3 data-i18n="telegramCardTitle">Telegram канал</h3>
+                    <p data-i18n="telegramCardDesc">Новости, обновления, розыгрыши и важные объявления</p>
+                    <a href="https://t.me/silencek4" class="btn btn-telegram">
+                        <span data-i18n="telegramCardBtn">Подписаться</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <section class="creator" id="creator">
+        <div class="container">
+            <div class="creator-container">
+                <div class="creator-glow"></div>
+                <div class="creator-content">
+                    <div class="creator-icon">🎬</div>
+                    <h2 data-i18n="creatorTitle">Хочешь стать контент-мейкером?</h2>
+                    <p data-i18n="creatorDesc">Снимаешь видео на YouTube или стримишь на Twitch? Присоединяйся к нашей партнёрской программе и получай бонусы!</p>
+                    <a href="https://form.typeform.com/to/MVr2QMiO" class="btn btn-primary">
+                        <span data-i18n="creatorBtn">Подать заявку</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="#" class="logo">
+                        <div class="logo-icon">⛏️</div>
+                        CraftCore
+                    </a>
+                    <p data-i18n="footerDesc">Vanilla survival сервер для тех, кто ценит настоящий Minecraft. Никаких модов, никакого pay-to-win — только честная игра.</p>
+                    <div class="footer-social">
+                        <a href="https://discord.gg/th4WgUWuNS" aria-label="Discord">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
+                            </svg>
+                        </a>
+                        <a href="https://t.me/silencek4" aria-label="Telegram">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.youtube.com/@kfr4kk" aria-label="YouTube">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                        </a>
+                        <a href="https://tiktok.com/@craftcore17" aria-label="TikTok">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.26 8.26 0 0 0 4.83 1.56V6.81a4.85 4.85 0 0 1-1.06-.12z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-links">
+                    <h4 data-i18n="footerNavTitle">Навигация</h4>
+                    <ul>
+                        <li><a href="#about">О сервере</a></li>
+                        <li><a href="#features">Особенности</a></li>
+                        <li><a href="#social">Соцсети</a></li>
+                        <li><a href="#creator">Контент-мейкеры</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4 data-i18n="footerInfoTitle">Информация</h4>
+                    <ul>
+                        <li><a href="https://teletype.in/@kfr4kk/RonWTEuWnb1" data-i18n="footerRules">Правила сервера</a></li>
+                        <li><a href="#" data-i18n="footerFaq">FAQ</a></li>
+                        <li><a href="https://t.me/somberlq" data-i18n="footerSupport">Поддержка</a></li>
+                        <li><a href="https://donatello.to/kefir4ik" data-i18n="footerDonate">Донат</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">© 2026 CraftCore. Все права защищены. Не связан с Mojang AB.</p>
+                <div class="footer-legal">
+                    <a href="#">Политика конфиденциальности</a>
+                    <a href="#">Пользовательское соглашение</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">IP скопирован!</div>
+
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Copy IP functionality
+        function copyIP() {
+            const ip = document.getElementById('serverIp').textContent;
+            const copyBtn = document.getElementById('copyBtn');
+            const toast = document.getElementById('toast');
+            const t = translations[currentLang];
+            
+            navigator.clipboard.writeText(ip).then(() => {
+                copyBtn.classList.add('copied');
+                copyBtn.querySelector('span').textContent = t.heroCopied;
+                toast.textContent = t.toastMsg;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    copyBtn.classList.remove('copied');
+                    copyBtn.querySelector('span').textContent = t.heroCopyIp;
+                    toast.classList.remove('show');
+                }, 2000);
+            });
+        }
+
+        // Mobile menu
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
+        });
+
+        function closeMobileMenu() {
+            mobileMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Animate elements on scroll
+        document.querySelectorAll('.feature-card, .social-card, .highlight-item, .about-stat').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+    <script>
+        // i18n translations
+        const translations = {
+            ru: {
+                devBanner: "Сервер всё ещё находится в разработке",
+                navAbout: "О сервере",
+                navFeatures: "Особенности",
+                navSocial: "Соцсети",
+                navContent: "Контент",
+                navCta: "Начать играть",
+                heroBadge: "Сервер онлайн",
+                heroTitle: "Чистый <span>Vanilla</span> Survival",
+                heroTagline: "Никаких модов. Никаких донат-привилегий. Только ты, блоки и бесконечные возможности. Присоединяйся к комьюнити, которое ценит настоящий Minecraft.",
+                heroOnline: "47/100 онлайн",
+                heroCopyIp: "Скопировать IP",
+                heroCopied: "Скопировано!",
+                heroLearnMore: "Узнать больше",
+                sectionAboutTag: "О проекте",
+                sectionAboutTitle: "Minecraft таким, каким он должен быть",
+                sectionAboutDesc: "Мы создали пространство для тех, кто устал от pay-to-win серверов и хочет просто играть в Minecraft с друзьями.",
+                aboutH3: "Почему именно CraftCore?",
+                aboutP1: "CraftCore — это vanilla survival сервер, где главное — это геймплей и комьюнити. Никаких приватов за донат, никаких китов и читеров. Только честная игра.",
+                aboutP2: "Мы верим, что Minecraft прекрасен сам по себе. Поэтому мы не добавляем сотни плагинов и модов — только необходимый минимум для защиты от гриферов и читеров.",
+                highlight1Title: "Масштабные проекты",
+                highlight1Desc: "Стройте города, фермы и механизмы вместе с другими игроками",
+                highlight2Title: "Еженедельные ивенты",
+                highlight2Desc: "PvP турниры, строительные конкурсы, квесты с призами",
+                highlight3Title: "Дружелюбное комьюнити",
+                highlight3Desc: "Активный Discord с голосовыми каналами и помощью новичкам",
+                statPlayers: "Игроков",
+                statUptime: "Аптайм",
+                statPing: "Пинг (Київ)",
+                statSupport: "Поддержка",
+                sectionFeaturesTag: "Особенности",
+                sectionFeaturesTitle: "Всё, что нужно для идеальной игры",
+                sectionFeaturesDesc: "Мы сосредоточились на главном — стабильности, безопасности и комфорте игроков.",
+                feat1Title: "Чистый Vanilla",
+                feat1Desc: "Никаких модов, изменяющих геймплей. Только оригинальный Minecraft с минимумом административных плагинов.",
+                feat2Title: "Активное комьюнити",
+                feat2Desc: "Дружелюбные игроки, голосовые чаты в Discord, совместные проекты и помощь новичкам.",
+                feat3Title: "Ивенты и конкурсы",
+                feat3Desc: "Регулярные мероприятия: PvP арены, строительные соревнования, квесты с уникальными наградами.",
+                feat4Title: "Мощный хостинг",
+                feat4Desc: "Выделенный сервер в Москве. Стабильные 20 TPS даже при высоком онлайне. Минимальный пинг для СНГ.",
+                feat5Title: "Защита от гриферов",
+                feat5Desc: "Система логирования CoreProtect. Быстрый откат грифа. Античит и защита от ботов.",
+                feat6Title: "Регулярные бэкапы",
+                feat6Desc: "Автоматические резервные копии каждые 6 часов. Ваши постройки в безопасности.",
+                sectionSocialTag: "Соцсети",
+                sectionSocialTitle: "Присоединяйся к нам",
+                sectionSocialDesc: "Будь в курсе всех новостей, общайся с игроками и участвуй в жизни сервера.",
+                discordCardTitle: "Discord сервер",
+                discordCardDesc: "Голосовые каналы, чаты, анонсы ивентов и поддержка",
+                discordCardBtn: "Присоединиться",
+                telegramCardTitle: "Telegram канал",
+                telegramCardDesc: "Новости, обновления, розыгрыши и важные объявления",
+                telegramCardBtn: "Подписаться",
+                creatorTitle: "Хочешь стать контент-мейкером?",
+                creatorDesc: "Снимаешь видео на YouTube или стримишь на Twitch? Присоединяйся к нашей партнёрской программе и получай бонусы!",
+                creatorBtn: "Подать заявку",
+                footerDesc: "Vanilla survival сервер для тех, кто ценит настоящий Minecraft. Никаких модов, никакого pay-to-win — только честная игра.",
+                footerNavTitle: "Навигация",
+                footerInfoTitle: "Информация",
+                footerRules: "Правила сервера",
+                footerFaq: "FAQ",
+                footerSupport: "Поддержка",
+                footerDonate: "Донат",
+                footerCopyright: "© 2026 CraftCore. Все права защищены. Не связан с Mojang AB.",
+                toastMsg: "IP скопирован!",
+            },
+            uk: {
+                devBanner: "Сервер ще знаходиться в розробці",
+                navAbout: "Про сервер",
+                navFeatures: "Особливості",
+                navSocial: "Соцмережі",
+                navContent: "Контент",
+                navCta: "Почати грати",
+                heroBadge: "Сервер онлайн",
+                heroTitle: "Чистий <span>Vanilla</span> Survival",
+                heroTagline: "Жодних модів. Жодних донат-привілеїв. Тільки ти, блоки та безмежні можливості. Приєднуйся до спільноти, яка цінує справжній Minecraft.",
+                heroOnline: "47/100 онлайн",
+                heroCopyIp: "Скопіювати IP",
+                heroCopied: "Скопійовано!",
+                heroLearnMore: "Дізнатися більше",
+                sectionAboutTag: "Про проект",
+                sectionAboutTitle: "Minecraft таким, яким він має бути",
+                sectionAboutDesc: "Ми створили простір для тих, хто втомився від pay-to-win серверів і хоче просто грати в Minecraft з друзями.",
+                aboutH3: "Чому саме CraftCore?",
+                aboutP1: "CraftCore — це vanilla survival сервер, де головне — це геймплей і спільнота. Жодних приватів за донат, жодних китів і читерів. Тільки чесна гра.",
+                aboutP2: "Ми віримо, що Minecraft прекрасний сам по собі. Тому ми не додаємо сотні плагінів і модів — лише необхідний мінімум для захисту від гріферів і читерів.",
+                highlight1Title: "Масштабні проекти",
+                highlight1Desc: "Будуйте міста, ферми та механізми разом з іншими гравцями",
+                highlight2Title: "Щотижневі івенти",
+                highlight2Desc: "PvP турніри, будівельні конкурси, квести з призами",
+                highlight3Title: "Дружня спільнота",
+                highlight3Desc: "Активний Discord з голосовими каналами та допомогою новачкам",
+                statPlayers: "Гравців",
+                statUptime: "Аптайм",
+                statPing: "Пінг (Київ)",
+                statSupport: "Підтримка",
+                sectionFeaturesTag: "Особливості",
+                sectionFeaturesTitle: "Все, що потрібно для ідеальної гри",
+                sectionFeaturesDesc: "Ми зосередилися на головному — стабільності, безпеці та комфорті гравців.",
+                feat1Title: "Чистий Vanilla",
+                feat1Desc: "Жодних модів, що змінюють геймплей. Тільки оригінальний Minecraft з мінімумом адміністративних плагінів.",
+                feat2Title: "Активна спільнота",
+                feat2Desc: "Дружні гравці, голосові чати в Discord, спільні проекти та допомога новачкам.",
+                feat3Title: "Івенти та конкурси",
+                feat3Desc: "Регулярні заходи: PvP арени, будівельні змагання, квести з унікальними нагородами.",
+                feat4Title: "Потужний хостинг",
+                feat4Desc: "Виділений сервер. Стабільні 20 TPS навіть при високому онлайні. Мінімальний пінг для України.",
+                feat5Title: "Захист від гріферів",
+                feat5Desc: "Система логування CoreProtect. Швидкий відкат грифа. Античіт та захист від ботів.",
+                feat6Title: "Регулярні бекапи",
+                feat6Desc: "Автоматичні резервні копії кожні 6 годин. Ваші будівлі в безпеці.",
+                sectionSocialTag: "Соцмережі",
+                sectionSocialTitle: "Приєднуйся до нас",
+                sectionSocialDesc: "Будь в курсі всіх новин, спілкуйся з гравцями та бери участь у житті сервера.",
+                discordCardTitle: "Discord сервер",
+                discordCardDesc: "Голосові канали, чати, анонси івентів та підтримка",
+                discordCardBtn: "Приєднатися",
+                telegramCardTitle: "Telegram канал",
+                telegramCardDesc: "Новини, оновлення, розіграші та важливі оголошення",
+                telegramCardBtn: "Підписатися",
+                creatorTitle: "Хочеш стати контент-мейкером?",
+                creatorDesc: "Знімаєш відео на YouTube або стримиш на Twitch? Приєднуйся до нашої партнерської програми та отримуй бонуси!",
+                creatorBtn: "Подати заявку",
+                footerDesc: "Vanilla survival сервер для тих, хто цінує справжній Minecraft. Жодних модів, жодного pay-to-win — тільки чесна гра.",
+                footerNavTitle: "Навігація",
+                footerInfoTitle: "Інформація",
+                footerRules: "Правила сервера",
+                footerFaq: "FAQ",
+                footerSupport: "Підтримка",
+                footerDonate: "Донат",
+                footerCopyright: "© 2026 CraftCore. Всі права захищені. Не пов'язаний з Mojang AB.",
+                toastMsg: "IP скопійовано!",
+            }
+        };
+
+        let currentLang = 'ru';
+
+        function setLang(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+
+            // Update lang buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase() === (lang === 'ru' ? 'ru' : 'ua'));
+            });
+
+            // Translate all elements with data-i18n attribute (text content)
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (!t[key]) return;
+                // Use innerHTML only for keys that contain HTML tags
+                if (key === 'heroTitle') {
+                    el.innerHTML = t[key];
+                } else {
+                    el.textContent = t[key];
+                }
+            });
+
+            // Special: copy button keeps its label
+            document.getElementById('copyBtn').querySelector('span').textContent = t.heroCopyIp;
+
+            // Special: toast text
+            document.getElementById('toast').textContent = t.toastMsg;
+        }
+    </script>
+</body>
